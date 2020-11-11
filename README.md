@@ -5,7 +5,7 @@
 
 Full featured OVH SDK
 
-This project eavily rely on auto-generated [OVH API models](https://github.com/clever-telemetry/ovh-models)
+This project heavily rely on auto-generated [OVH API models](https://github.com/clever-telemetry/ovh-models) source code repository.
 
 ## Getting started
 
