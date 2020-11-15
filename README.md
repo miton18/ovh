@@ -50,6 +50,14 @@ func main() {
 
 ```
 
+## Contribute
+
+### The method you want is not implemented
+You can request a new method by creating a new [method issue](https://github.com/clever-telemetry/ovh/issues/new?assignees=miton18&labels=enhancement%2C+method+request&template=method-request.md&title=)
+
+### You want to code a new method ? 
+See [CONTRIBUTING](./CONTRIBUTING.md)
+
 ## Tips
 
 ## Observability
