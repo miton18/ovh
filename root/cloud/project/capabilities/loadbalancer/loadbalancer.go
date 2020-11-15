@@ -1,25 +1,24 @@
 package loadbalancer
 
 import (
-	"context"
+	ovhclient "github.com/ovh/go-ovh/ovh"
 
-	"github.com/clever-telemetry/ovh/root/cloud/project/capabilities/loadbalancer/region"
+	"github.com/miton18/ovh/root/cloud/project/capabilities/loadbalancer/region"
 )
 
-type Client interface {
-	Region() region.Client
+type Loadbalancer interface {
+	Region() region.Region
 }
 
-type client struct {
-	ctx context.Context
+type loadbalancer struct {
+	client *ovhclient.Client
+	project string
 }
 
-func New(ctx context.Context) Client {
-	return &client{
-		ctx: ctx,
-	}
+func New(client *ovhclient.Client, project string) Loadbalancer {
+	return &loadbalancer{client, project}
 }
 
-func (c *client) Region() region.Client {
-	return region.New(c.ctx)
+func (l *loadbalancer) Region() region.Region {
+	return region.New(l.client, l.project)
 }

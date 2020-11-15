@@ -5,9 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/clever-telemetry/ovh-models/cloud"
-	self "github.com/clever-telemetry/ovh/context"
-	"github.com/clever-telemetry/ovh/root/cloud/project/loadbalancer/configuration"
+	"github.com/miton18/ovh-models/cloud"
 	ovhclient "github.com/ovh/go-ovh/ovh"
 )
 
@@ -20,8 +18,6 @@ func TestIntegration(t *testing.T) {
 	)
 
 	cctx := context.Background()
-	cctx = self.WithClient(cctx, _client)
-	cctx = self.WithProjectId(cctx, os.Getenv("OVH_PROJECT"))
 
 	client := New(cctx)
 	ctx := context.Background()
@@ -36,7 +32,7 @@ func TestIntegration(t *testing.T) {
 	if err != nil {
 		t.Errorf("can't create Loadbalancers: %s", err.Error())
 	}
-	t.Logf("Loadbalancer ID: %s", lb.Id)
+	t.Logf("Node ID: %s", lb.Id)
 
 	// Delete lb after tests
 	t.Cleanup(func() {
@@ -45,46 +41,43 @@ func TestIntegration(t *testing.T) {
 
 	_, err = client.SetName(ctx, lb.Id, "sdk-unit-test-updated")
 	if err != nil {
-		t.Errorf("can't update loadbalancer: %s", err.Error())
+		t.Errorf("can't update node: %s", err.Error())
 	}
 
 	_, err = client.SetDescription(ctx, lb.Id, "for unit tests purpose (deletable)")
 	if err != nil {
-		t.Errorf("can't update loadbalancer: %s", err.Error())
+		t.Errorf("can't update node: %s", err.Error())
 	}
 
 	// CONFIGURATION
-	cctx = self.WithLoadbalancerId(cctx, lb.Id)
-	configClient := configuration.New(cctx)
-
 	config, err := configClient.Create(ctx, &cloud.ConfigurationCreation{})
 	if err != nil {
-		t.Errorf("can't create loadbalancer configuration: %s", err.Error())
+		t.Errorf("can't create node configuration: %s", err.Error())
 	}
 
 	_, err = configClient.List(ctx)
 	if err != nil {
-		t.Errorf("can't list loadbalancer configuration: %s", err.Error())
+		t.Errorf("can't list node configuration: %s", err.Error())
 	}
 
 	_, err = configClient.Get(ctx, config.Version)
 	if err != nil {
-		t.Errorf("can't get loadbalancer configuration: %s", err.Error())
+		t.Errorf("can't get node configuration: %s", err.Error())
 	}
 
 	err = configClient.Apply(ctx, config.Version)
 	if err != nil {
-		t.Errorf("can't apply loadbalancer configuration: %s", err.Error())
+		t.Errorf("can't apply node configuration: %s", err.Error())
 	}
 
 	// we need a non applied config to delete
 	config2, err := configClient.Create(ctx, &cloud.ConfigurationCreation{})
 	if err != nil {
-		t.Errorf("can't create loadbalancer configuration2: %s", err.Error())
+		t.Errorf("can't create node configuration2: %s", err.Error())
 	}
 	err = configClient.Delete(ctx, config2.Version)
 	if err != nil {
-		t.Errorf("can't delete loadbalancer configuration2: %s", err.Error())
+		t.Errorf("can't delete node configuration2: %s", err.Error())
 	}
 
 	err = client.Delete(ctx, lb.Id)

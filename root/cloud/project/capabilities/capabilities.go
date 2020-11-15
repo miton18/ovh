@@ -1,23 +1,24 @@
 package capabilities
 
 import (
-	"context"
+	ovhclient "github.com/ovh/go-ovh/ovh"
 
-	"github.com/clever-telemetry/ovh/root/cloud/project/capabilities/loadbalancer"
+	"github.com/miton18/ovh/root/cloud/project/capabilities/loadbalancer"
 )
 
-type Client interface {
-	Loadbalancer() loadbalancer.Client
+type Capabilities interface {
+	Loadbalancer() loadbalancer.Loadbalancer
 }
 
-type client struct {
-	ctx context.Context
+type capabilities struct {
+	client *ovhclient.Client
+	project string
 }
 
-func New(ctx context.Context) Client {
-	return &client{ctx}
+func New(client *ovhclient.Client, project string) Capabilities {
+	return &capabilities{client, project}
 }
 
-func (c *client) Loadbalancer() loadbalancer.Client {
-	return loadbalancer.New(c.ctx)
+func (c *capabilities) Loadbalancer() loadbalancer.Loadbalancer {
+	return loadbalancer.New(c.client, c.project)
 }

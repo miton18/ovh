@@ -1,7 +1,7 @@
 ---
 name: Method request
 about: Request a new SDK method not implemented yet
-title: ''
+title: '[CALL]'
 labels: enhancement, method request
 assignees: miton18
 

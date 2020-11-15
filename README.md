@@ -1,18 +1,18 @@
 # OVH SDK
 
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/clever-telemetry/ovh)](https://pkg.go.dev/github.com/clever-telemetry/ovh)
-![License](https://img.shields.io/github/license/clever-telemetry/ovh?style=flat)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/miton18/ovh)](https://pkg.go.dev/github.com/miton18/ovh)
+![License](https://img.shields.io/github/license/miton18/ovh?style=flat)
 
 Full featured OVH SDK
 
-This project heavily rely on auto-generated [OVH API models](https://github.com/clever-telemetry/ovh-models) source code repository.
+This project heavily rely on auto-generated [OVH API models](https://github.com/miton18/ovh-models) source code repository.
 
 ## Getting started
 
 ### Install the SDK
 
 ```sh
-go get -u github.com/clever-telemetry/ovh
+go get -u github.com/miton18/ovh
 ```
 
 ### Keys
@@ -31,7 +31,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/clever-telemetry/ovh"
+	"github.com/miton18/ovh"
 )
 
 func main() {
@@ -50,10 +50,18 @@ func main() {
 
 ```
 
+## Contribute
+
+### The method you want is not implemented
+You can request a new method by creating a new [method issue](https://github.com/miton18/ovh/issues/new?assignees=miton18&labels=enhancement%2C+method+request&template=method-request.md&title=)
+
+### You want to code a new method ? 
+See [CONTRIBUTING](./CONTRIBUTING.md)
+
 ## Tips
 
 ## Observability
-Each SDK action is observed, so you can find a list of metrics in the [metrics](https://github.com/clever-telemetry/ovh/tree/master/metrics) package.
+Each SDK action is observed, so you can find a list of metrics in the [metrics](https://github.com/miton18/ovh/tree/master/metrics) package.
 This is up to you to register them.
 
 TODO: Tracing
@@ -69,7 +77,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/clever-telemetry/ovh"
+	"github.com/miton18/ovh"
 )
 
 func main() {

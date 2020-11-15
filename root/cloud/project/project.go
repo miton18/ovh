@@ -3,38 +3,33 @@ package project
 import (
 	"context"
 
-	"github.com/clever-telemetry/ovh-models/cloud"
-	self "github.com/clever-telemetry/ovh/context"
-	"github.com/clever-telemetry/ovh/metrics"
-	"github.com/clever-telemetry/ovh/root/cloud/project/capabilities"
-	"github.com/clever-telemetry/ovh/root/cloud/project/loadbalancer"
+	"github.com/miton18/ovh-models/cloud"
+	"github.com/miton18/ovh/metrics"
+	"github.com/miton18/ovh/root/cloud/project/capabilities"
+	"github.com/miton18/ovh/root/cloud/project/loadbalancer"
 	ovhclient "github.com/ovh/go-ovh/ovh"
 )
 
-type Client interface {
+type Node interface {
 	List(context.Context) ([]string, error)
 	Get(context.Context, string) (*cloud.Project, error)
-	Loadbalancer(string) loadbalancer.Client
-	Capabilities(string) capabilities.Client
+	Loadbalancer(string) loadbalancer.Node
+	Capabilities(string) capabilities.Capabilities
 }
 
-type client struct {
-	ctx    context.Context
+type node struct {
 	client *ovhclient.Client
 }
 
-func New(ctx context.Context) Client {
-	return &client{
-		ctx:    ctx,
-		client: self.Client(ctx),
-	}
+func New(client *ovhclient.Client) Node {
+	return &node{client}
 }
 
-func (c *client) List(ctx context.Context) ([]string, error) {
+func (p *node) List(ctx context.Context) ([]string, error) {
 	var projects []string
 
 	oc := metrics.ObserveCall("ListProjects")
-	err := c.client.GetWithContext(ctx, "/cloud/project", &projects)
+	err := p.client.GetWithContext(ctx, "/cloud/project", &projects)
 	oc.End(err)
 	if err != nil {
 		return nil, err
@@ -43,11 +38,11 @@ func (c *client) List(ctx context.Context) ([]string, error) {
 	return projects, nil
 }
 
-func (c *client) Get(ctx context.Context, projectId string) (*cloud.Project, error) {
+func (p *node) Get(ctx context.Context, projectId string) (*cloud.Project, error) {
 	var project cloud.Project
 
 	oc := metrics.ObserveCall("GetProject")
-	err := c.client.GetWithContext(ctx, "/cloud/project/"+projectId, &project)
+	err := p.client.GetWithContext(ctx, "/cloud/project/"+projectId, &project)
 	oc.End(err)
 	if err != nil {
 		return nil, err
@@ -56,12 +51,10 @@ func (c *client) Get(ctx context.Context, projectId string) (*cloud.Project, err
 	return &project, nil
 }
 
-func (c *client) Loadbalancer(project string) loadbalancer.Client {
-	ctx := self.WithProjectId(c.ctx, project)
-	return loadbalancer.New(ctx)
+func (p *node) Loadbalancer(project string) loadbalancer.Node {
+	return loadbalancer.New(p.client, project)
 }
 
-func (c *client) Capabilities(project string) capabilities.Client {
-	ctx := self.WithProjectId(c.ctx, project)
-	return capabilities.New(ctx)
+func (p *node) Capabilities(project string) capabilities.Capabilities {
+	return capabilities.New(p.client, project)
 }

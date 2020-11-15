@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/clever-telemetry/ovh-models/cloud"
-	self "github.com/clever-telemetry/ovh/context"
-	"github.com/clever-telemetry/ovh/metrics"
+	"github.com/miton18/ovh-models/cloud"
+	"github.com/miton18/ovh/metrics"
 	ovhclient "github.com/ovh/go-ovh/ovh"
 )
 
-type Client interface {
+type Node interface {
 	List(ctx context.Context) ([]int64, error)
 	// Fetch all LB
 	Get(ctx context.Context, version int64) (*cloud.Configuration, error)
@@ -22,31 +21,25 @@ type Client interface {
 	Apply(ctx context.Context, version int64) error
 }
 
-type client struct {
-	ctx            context.Context
+type node struct {
 	client         *ovhclient.Client
-	projectId      string
-	loadbalancerId string
+	project      string
+	loadbalancer string
 }
 
-func New(ctx context.Context) Client {
-	return &client{
-		ctx:            ctx,
-		client:         self.Client(ctx),
-		projectId:      self.ProjectId(ctx),
-		loadbalancerId: self.LoadbalancerId(ctx),
-	}
+func New(client *ovhclient.Client, project string, loadbalancer string) Node {
+	return &node{client, project, loadbalancer}
 }
 
-func (c *client) path() string {
-	return fmt.Sprintf("/cloud/project/%s/loadbalancer/%s/configuration", c.projectId, c.loadbalancerId)
+func (c *node) path() string {
+	return fmt.Sprintf("/cloud/project/%s/loadbalancer/%s/configuration", c.project, c.loadbalancer)
 }
 
-func (c *client) pathWithId(version int64) string {
-	return fmt.Sprintf("/cloud/project/%s/loadbalancer/%s/configuration/%d", c.projectId, c.loadbalancerId, version)
+func (c *node) pathWithId(version int64) string {
+	return fmt.Sprintf("/cloud/project/%s/loadbalancer/%s/configuration/%d", c.project, c.loadbalancer, version)
 }
 
-func (c *client) List(ctx context.Context) ([]int64, error) {
+func (c *node) List(ctx context.Context) ([]int64, error) {
 	var versions []int64
 
 	oc := metrics.ObserveCall("ListLoadbalancerConfigs")
@@ -59,7 +52,7 @@ func (c *client) List(ctx context.Context) ([]int64, error) {
 	return versions, nil
 }
 
-func (c *client) Get(ctx context.Context, version int64) (*cloud.Configuration, error) {
+func (c *node) Get(ctx context.Context, version int64) (*cloud.Configuration, error) {
 	var config cloud.Configuration
 
 	oc := metrics.ObserveCall("GetLoadbalancerConfig")
@@ -72,7 +65,7 @@ func (c *client) Get(ctx context.Context, version int64) (*cloud.Configuration, 
 	return &config, nil
 }
 
-func (c *client) Create(ctx context.Context, config *cloud.ConfigurationCreation) (*cloud.Configuration, error) {
+func (c *node) Create(ctx context.Context, config *cloud.ConfigurationCreation) (*cloud.Configuration, error) {
 	var _config cloud.Configuration
 
 	oc := metrics.ObserveCall("CreateLoadbalancerConfig")
@@ -85,7 +78,7 @@ func (c *client) Create(ctx context.Context, config *cloud.ConfigurationCreation
 	return &_config, nil
 }
 
-func (c *client) Delete(ctx context.Context, version int64) error {
+func (c *node) Delete(ctx context.Context, version int64) error {
 	oc := metrics.ObserveCall("DeleteLoadbalancerConfig")
 	err := c.client.DeleteWithContext(ctx, c.pathWithId(version), nil)
 	oc.End(err)
@@ -93,7 +86,7 @@ func (c *client) Delete(ctx context.Context, version int64) error {
 	return err
 }
 
-func (c *client) Apply(ctx context.Context, version int64) error {
+func (c *node) Apply(ctx context.Context, version int64) error {
 	oc := metrics.ObserveCall("ApplyLoadbalancerConfig")
 	err := c.client.PostWithContext(ctx, c.pathWithId(version)+"/apply", nil, nil)
 	oc.End(err)

@@ -1,23 +1,29 @@
 package root
 
 import (
-	"context"
+	"github.com/miton18/ovh/root/me"
+	ovhclient "github.com/ovh/go-ovh/ovh"
 
-	"github.com/clever-telemetry/ovh/root/cloud"
+	"github.com/miton18/ovh/root/cloud"
 )
 
-type Client interface {
-	Cloud() cloud.Client
+type Node interface {
+	Cloud() cloud.Node
+	Me() me.Node
 }
 
-type client struct {
-	ctx context.Context
+type node struct {
+	client *ovhclient.Client
 }
 
-func New(ctx context.Context) Client {
-	return &client{ctx}
+func New(client *ovhclient.Client) Node {
+	return &node{client}
 }
 
-func (c *client) Cloud() cloud.Client {
-	return cloud.New(c.ctx)
+func (c *node) Cloud() cloud.Node {
+	return cloud.New(c.client)
+}
+
+func (c *node) Me() me.Node {
+	return me.New(c.client)
 }
