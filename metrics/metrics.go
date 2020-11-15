@@ -2,7 +2,16 @@ package metrics
 
 // metrics package expose a set of metrics filled by the SDK about API calls
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+)
+
+type ObservabilityContext struct {
+	start  time.Time
+	action string
+}
 
 const (
 	Namespace = "ovh"
@@ -42,4 +51,27 @@ func init() {
 		CallCount,
 		CallDuration,
 	)
+}
+
+// observe an HTTP call, action must be UpperCamelCased
+func ObserveCall(action string) *ObservabilityContext {
+	return &ObservabilityContext{
+		start:  time.Now(),
+		action: action,
+	}
+}
+
+// End the observation with a nillable error
+func (ctx *ObservabilityContext) End(err error) {
+	d := time.Since(ctx.start)
+
+	if err != nil {
+		CallCount.WithLabelValues(ctx.action).Inc()
+	} else {
+		ErroredCallCount.WithLabelValues(ctx.action).Inc()
+	}
+
+	CallDuration.
+		WithLabelValues(ctx.action).
+		Add(float64(d.Milliseconds()))
 }

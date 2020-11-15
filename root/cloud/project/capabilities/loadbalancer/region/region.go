@@ -6,6 +6,7 @@ import (
 
 	"github.com/clever-telemetry/ovh-models/cloud"
 	self "github.com/clever-telemetry/ovh/context"
+	"github.com/clever-telemetry/ovh/metrics"
 	ovhclient "github.com/ovh/go-ovh/ovh"
 )
 
@@ -15,24 +16,30 @@ type Client interface {
 }
 
 type client struct {
-	ctx    context.Context
-	client *ovhclient.Client
-	path   string
+	ctx       context.Context
+	client    *ovhclient.Client
+	projectId string
 }
 
 func New(ctx context.Context) Client {
-	ctx = self.AppendToPath(ctx, "/region")
 	return &client{
-		ctx:    ctx,
-		client: self.Client(ctx),
-		path:   self.Path(ctx),
+		ctx:       ctx,
+		client:    self.Client(ctx),
+		projectId: self.ProjectId(ctx),
 	}
+}
+
+func (c *client) path() string {
+	return fmt.Sprintf("/cloud/%s/capabilities/loadbalancer/region", c.projectId)
 }
 
 func (c *client) List(ctx context.Context) ([]string, error) {
 	var regions []string
 
-	if err := c.client.GetWithContext(ctx, c.path, &regions); err != nil {
+	oc := metrics.ObserveCall("ListLoadbalancerCapabilities")
+	err := c.client.GetWithContext(ctx, c.path(), &regions)
+	oc.End(err)
+	if err != nil {
 		return nil, err
 	}
 
@@ -42,7 +49,10 @@ func (c *client) List(ctx context.Context) ([]string, error) {
 func (c *client) Get(ctx context.Context, regionName string) (*cloud.Region, error) {
 	var region cloud.Region
 
-	if err := c.client.GetWithContext(ctx, fmt.Sprintf(c.path+"/"+regionName), &region); err != nil {
+	oc := metrics.ObserveCall("GetLoadbalancerRegion")
+	err := c.client.GetWithContext(ctx, fmt.Sprintf(c.path()+"/"+regionName), &region)
+	oc.End(err)
+	if err != nil {
 		return nil, err
 	}
 

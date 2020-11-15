@@ -35,18 +35,3 @@ func WithLoadbalancerId(ctx context.Context, loadbalancerId string) context.Cont
 func LoadbalancerId(ctx context.Context) string {
 	return ctx.Value(loadbalancerIdKey{}).(string)
 }
-
-type pathKey struct{}
-
-func WithPath(ctx context.Context, path string) context.Context {
-	return context.WithValue(ctx, pathKey{}, path)
-}
-
-func AppendToPath(ctx context.Context, path string) context.Context {
-	_path := Path(ctx) + path
-	return context.WithValue(ctx, pathKey{}, _path)
-}
-
-func Path(ctx context.Context) string {
-	return ctx.Value(pathKey{}).(string)
-}

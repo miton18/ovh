@@ -5,8 +5,10 @@ import (
 
 	"github.com/clever-telemetry/ovh-models/cloud"
 	self "github.com/clever-telemetry/ovh/context"
+	"github.com/clever-telemetry/ovh/metrics"
 	"github.com/clever-telemetry/ovh/root/cloud/project/capabilities"
 	"github.com/clever-telemetry/ovh/root/cloud/project/loadbalancer"
+	ovhclient "github.com/ovh/go-ovh/ovh"
 )
 
 type Client interface {
@@ -17,23 +19,24 @@ type Client interface {
 }
 
 type client struct {
-	ctx  context.Context
-	path string
+	ctx    context.Context
+	client *ovhclient.Client
 }
 
 func New(ctx context.Context) Client {
-	ctx = self.AppendToPath(ctx, "/project")
-
 	return &client{
-		ctx:  ctx,
-		path: self.Path(ctx),
+		ctx:    ctx,
+		client: self.Client(ctx),
 	}
 }
 
 func (c *client) List(ctx context.Context) ([]string, error) {
 	var projects []string
 
-	if err := self.Client(c.ctx).GetWithContext(ctx, c.path, &projects); err != nil {
+	oc := metrics.ObserveCall("ListProjects")
+	err := c.client.GetWithContext(ctx, "/cloud/project", &projects)
+	oc.End(err)
+	if err != nil {
 		return nil, err
 	}
 
@@ -43,7 +46,10 @@ func (c *client) List(ctx context.Context) ([]string, error) {
 func (c *client) Get(ctx context.Context, projectId string) (*cloud.Project, error) {
 	var project cloud.Project
 
-	if err := self.Client(c.ctx).GetWithContext(ctx, c.path+"/"+projectId, &project); err != nil {
+	oc := metrics.ObserveCall("GetProject")
+	err := c.client.GetWithContext(ctx, "/cloud/project/"+projectId, &project)
+	oc.End(err)
+	if err != nil {
 		return nil, err
 	}
 
@@ -52,12 +58,10 @@ func (c *client) Get(ctx context.Context, projectId string) (*cloud.Project, err
 
 func (c *client) Loadbalancer(project string) loadbalancer.Client {
 	ctx := self.WithProjectId(c.ctx, project)
-	ctx = self.AppendToPath(ctx, "/"+project)
 	return loadbalancer.New(ctx)
 }
 
 func (c *client) Capabilities(project string) capabilities.Client {
 	ctx := self.WithProjectId(c.ctx, project)
-	ctx = self.AppendToPath(ctx, "/"+project)
 	return capabilities.New(ctx)
 }
