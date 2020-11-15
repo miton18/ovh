@@ -3,7 +3,6 @@ package cloud
 import (
 	"context"
 
-	self "github.com/clever-telemetry/ovh/context"
 	"github.com/clever-telemetry/ovh/root/cloud/project"
 )
 
@@ -12,18 +11,15 @@ type Client interface {
 }
 
 type client struct {
-	ctx  context.Context
-	path string
+	ctx context.Context
 }
 
 func New(ctx context.Context) Client {
 	return &client{
-		ctx:  ctx,
-		path: "/cloud",
+		ctx: ctx,
 	}
 }
 
 func (c *client) Project() project.Client {
-	ctx := self.WithPath(c.ctx, "/cloud")
-	return project.New(ctx)
+	return project.New(c.ctx)
 }

@@ -3,7 +3,6 @@ package loadbalancer
 import (
 	"context"
 
-	self "github.com/clever-telemetry/ovh/context"
 	"github.com/clever-telemetry/ovh/root/cloud/project/capabilities/loadbalancer/region"
 )
 
@@ -16,8 +15,6 @@ type client struct {
 }
 
 func New(ctx context.Context) Client {
-	ctx = self.AppendToPath(ctx, "/loadbalancer")
-
 	return &client{
 		ctx: ctx,
 	}
